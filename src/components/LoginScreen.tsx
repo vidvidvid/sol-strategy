@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, VStack, Text } from "@chakra-ui/react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
@@ -8,18 +8,26 @@ import { createUser, getUserByPublicKey } from "../api";
 const LoginScreen: React.FC = () => {
   const { connected, publicKey } = useWallet();
   const { setIsLoggedIn } = useAppContext();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleLogin = async () => {
       if (connected && publicKey) {
+        setIsLoading(true);
+        setError(null);
         try {
           let user = await getUserByPublicKey(publicKey.toString());
           if (!user) {
+            // User doesn't exist, automatically create a new account
             user = await createUser({ publicKey: publicKey.toString() });
           }
           setIsLoggedIn(true);
         } catch (error) {
-          console.error("Error logging in:", error);
+          console.error("Error during login process:", error);
+          setError("An error occurred. Please try again.");
+        } finally {
+          setIsLoading(false);
         }
       }
     };
@@ -41,6 +49,8 @@ const LoginScreen: React.FC = () => {
         </Text>
         <WalletMultiButton />
         {connected && <Text color='green.500'>Wallet connected!</Text>}
+        {isLoading && <Text>Loading...</Text>}
+        {error && <Text color='red.500'>{error}</Text>}
       </VStack>
     </Box>
   );

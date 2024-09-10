@@ -3,7 +3,10 @@ import axios from "axios";
 const API_URL = process.env.REACT_APP_API_URL;
 
 export const createUser = async (userData: any) => {
-  const response = await axios.post(`${API_URL}/users`, userData);
+  const response = await axios.post(`${API_URL}/users`, {
+    ...userData,
+    characterType: "Unassigned", // Default character type
+  });
   return response.data;
 };
 
