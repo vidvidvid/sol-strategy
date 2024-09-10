@@ -9,14 +9,15 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { FaUserNinja, FaUserGraduate, FaUserShield } from "react-icons/fa";
+import { useAppContext } from "../context/AppContext";
 
-interface CharacterSelectionScreenProps {
-  onSelectCharacter: (character: string) => void;
-}
+const CharacterSelectionScreen: React.FC = () => {
+  const { setSelectedCharacter } = useAppContext();
 
-const CharacterSelectionScreen: React.FC<CharacterSelectionScreenProps> = ({
-  onSelectCharacter,
-}) => {
+  const handleSelectCharacter = (character: string) => {
+    setSelectedCharacter(character);
+  };
+
   const characters = [
     {
       name: "Warrior",
@@ -81,7 +82,7 @@ const CharacterSelectionScreen: React.FC<CharacterSelectionScreenProps> = ({
               <Text fontSize='sm'>Complexity: {character.complexity}%</Text>
               <Button
                 colorScheme='blue'
-                onClick={() => onSelectCharacter(character.name)}
+                onClick={() => handleSelectCharacter(character.name)}
               >
                 Select {character.name}
               </Button>

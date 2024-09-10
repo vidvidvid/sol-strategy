@@ -2,19 +2,30 @@ import React, { useEffect } from "react";
 import { Box, VStack, Text } from "@chakra-ui/react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useAppContext } from "../context/AppContext";
+import { createUser, getUserByPublicKey } from "../api";
 
-interface LoginScreenProps {
-  onLogin: () => void;
-}
-
-const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
-  const { connected } = useWallet();
+const LoginScreen: React.FC = () => {
+  const { connected, publicKey } = useWallet();
+  const { setIsLoggedIn } = useAppContext();
 
   useEffect(() => {
-    if (connected) {
-      onLogin();
-    }
-  }, [connected, onLogin]);
+    const handleLogin = async () => {
+      if (connected && publicKey) {
+        try {
+          let user = await getUserByPublicKey(publicKey.toString());
+          if (!user) {
+            user = await createUser({ publicKey: publicKey.toString() });
+          }
+          setIsLoggedIn(true);
+        } catch (error) {
+          console.error("Error logging in:", error);
+        }
+      }
+    };
+
+    handleLogin();
+  }, [connected, publicKey, setIsLoggedIn]);
 
   return (
     <Box

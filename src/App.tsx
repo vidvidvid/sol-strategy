@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { ChakraProvider, Box, VStack, Heading } from "@chakra-ui/react";
 import {
   ConnectionProvider,
@@ -11,54 +11,45 @@ import { clusterApiUrl } from "@solana/web3.js";
 import LoginScreen from "./components/LoginScreen";
 import CharacterSelectionScreen from "./components/CharacterSelectionScreen";
 import MainUI from "./components/MainUI";
+import { AppProvider, useAppContext } from "./context/AppContext";
 
-// Default styles that can be overridden by your app
 require("@solana/wallet-adapter-react-ui/styles.css");
 
-function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
-    null
-  );
+const AppContent: React.FC = () => {
+  const { isLoggedIn, selectedCharacter } = useAppContext();
 
-  // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'
   const network = WalletAdapterNetwork.Devnet;
-
-  // You can also provide a custom RPC endpoint
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-
   const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
+  return (
+    <ConnectionProvider endpoint={endpoint}>
+      <WalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>
+          <Box textAlign='center' fontSize='xl'>
+            <VStack spacing={8}>
+              <Heading>Sol Strategy</Heading>
+              {!isLoggedIn ? (
+                <LoginScreen />
+              ) : !selectedCharacter ? (
+                <CharacterSelectionScreen />
+              ) : (
+                <MainUI />
+              )}
+            </VStack>
+          </Box>
+        </WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
+  );
+};
 
-  const handleSelectCharacter = (character: string) => {
-    setSelectedCharacter(character);
-  };
-
+function App() {
   return (
     <ChakraProvider>
-      <ConnectionProvider endpoint={endpoint}>
-        <WalletProvider wallets={wallets} autoConnect>
-          <WalletModalProvider>
-            <Box textAlign='center' fontSize='xl'>
-              <VStack spacing={8}>
-                <Heading>Sol Strategy</Heading>
-                {!isLoggedIn ? (
-                  <LoginScreen onLogin={handleLogin} />
-                ) : !selectedCharacter ? (
-                  <CharacterSelectionScreen
-                    onSelectCharacter={handleSelectCharacter}
-                  />
-                ) : (
-                  <MainUI selectedCharacter={selectedCharacter} />
-                )}
-              </VStack>
-            </Box>
-          </WalletModalProvider>
-        </WalletProvider>
-      </ConnectionProvider>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
     </ChakraProvider>
   );
 }
